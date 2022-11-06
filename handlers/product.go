@@ -161,8 +161,8 @@ func (h *handlerProduct) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	if request.Price != 0 {
 		product.Price = request.Price
 	}
-	if filepath != "false" {
-		product.Image = filepath
+	if request.Image != "false" {
+		product.Image = request.Image 
 	}
 
 	data, err := h.ProductRepository.UpdateProduct(product)
