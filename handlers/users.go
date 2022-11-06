@@ -138,8 +138,8 @@ func (h *handlerUser) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if request.Location != "" {
 		user.Location = request.Location
 	}
-	if filepath != "false" {
-		user.Image = filepath
+	if request.Image != "false" {
+		user.Image = request.Image
 	}
 
 	//update method from repo

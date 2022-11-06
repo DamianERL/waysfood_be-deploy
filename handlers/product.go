@@ -153,18 +153,18 @@ func (h *handlerProduct) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	product, _ := h.ProductRepository.GetProduct(int(id))
-
+	
 	if request.Name != "" {
 		product.Name = request.Name
 	}
-
+	
 	if request.Price != 0 {
 		product.Price = request.Price
 	}
 	if request.Image != "false" {
 		product.Image = request.Image 
 	}
-
+	
 	data, err := h.ProductRepository.UpdateProduct(product)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
