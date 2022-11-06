@@ -2,19 +2,23 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	dto "waysfood/dto/result"
 	usersdto "waysfood/dto/users"
 	"waysfood/models"
 	"waysfood/repositories"
 
+	"context"
+
+	"github.com/cloudinary/cloudinary-go/v2"
+	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 	"github.com/go-playground/validator/v10"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 )
-
-// var path_files = "http://localhost:5000/uploads/"
 
 // connection to repo ->db
 type handlerUser struct {
@@ -37,9 +41,9 @@ func (h *handlerUser) FindUsers(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(err.Error())
 	}
 
-	for i, p := range users {
-		users[i].Image = p.Image
-	}
+	// for i, p := range users {
+	// 	users[i].Image = p.Image
+	// }
 
 
 	w.WriteHeader(http.StatusOK)
@@ -56,9 +60,7 @@ func (h *handlerUser) FindPartners (w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-
 	
-
 	w.WriteHeader(http.StatusOK)
 	response := dto.SuccessResult{Status:"success", Data: users}
 	json.NewEncoder(w).Encode(response)
@@ -92,7 +94,24 @@ func (h *handlerUser) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	id := int(userInfo["id"].(float64))
 
 	dataContex := r.Context().Value("dataFile") // add this code
-	filename := dataContex.(string)             // add this code
+	filepath := dataContex.(string)             // add this code
+
+		
+	var ctx = context.Background()
+	var CLOUD_NAME = os.Getenv("CLOUD_NAME")
+	var API_KEY = os.Getenv("API_KEY")
+	var API_SECRET = os.Getenv("API_SECRET")
+
+	// Add your Cloudinary credentials ...
+	cld, _ := cloudinary.NewFromParams(CLOUD_NAME, API_KEY, API_SECRET)
+
+	// Upload file to Cloudinary ...
+	resp, err := cld.Upload.Upload(ctx, filepath, uploader.UploadParams{Folder: "waysfood"})
+
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
 
 	
 	request := usersdto.UpdateUserRequest{
@@ -100,6 +119,7 @@ func (h *handlerUser) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		Email:    r.FormValue("email"),
 		Location: r.FormValue("location"),
 		Phone:    r.FormValue("phone"),
+		Image: resp.SecureURL,
 	}
 
 
@@ -118,8 +138,8 @@ func (h *handlerUser) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	if request.Location != "" {
 		user.Location = request.Location
 	}
-	if filename != "" {
-		user.Image = path_file + filename
+	if filepath != "false" {
+		user.Image = filepath
 	}
 
 	//update method from repo
